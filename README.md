@@ -89,13 +89,15 @@ Smart-Image-Enhancement/
 │
 └── sample_images/
 
-6. Installation
 
-Clone the repository:
+
+### 6. Installation
+
+## Clone the repository:
 
 git clone https://github.com/Abhaymourya18/Smart-Image-Enhancement.git
 
-Navigate to the project directory:
+## Navigate to the project directory:
 
 cd Smart-Image-Enhancement
 
