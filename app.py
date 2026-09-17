@@ -10,7 +10,12 @@ from modules.enhancement import (
     histogram_equalization,
     sharpen_image
 )
-
+from modules.restoration import (
+    gaussian_blur,
+    median_filter,
+    bilateral_filter,
+    denoise_image
+)
 st.set_page_config(
     page_title="Smart Image Enhancement",
     layout="wide"
@@ -38,6 +43,10 @@ if uploaded_file:
             "Contrast",
             "Histogram Equalization",
             "Sharpen"
+            "Gaussian Blur",
+"Median Filter",
+"Bilateral Filter",
+"Image Denoising"
         ]
     )
 
@@ -63,7 +72,21 @@ if uploaded_file:
     elif operation == "Sharpen":
         result = sharpen_image(image_bgr)
         result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+    elif operation == "Gaussian Blur":
+        result = gaussian_blur(image_bgr)
+        result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
 
+    elif operation == "Median Filter":
+       result = median_filter(image_bgr)
+       result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+
+    elif operation == "Bilateral Filter":
+       result = bilateral_filter(image_bgr)
+       result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+
+    elif operation == "Image Denoising":
+       result = denoise_image(image_bgr)
+       result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
     col1, col2 = st.columns(2)
 
     with col1:
