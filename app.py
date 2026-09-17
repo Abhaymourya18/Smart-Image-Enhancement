@@ -52,6 +52,17 @@ st.write(
 
 
 # --------------------------------------------------
+# SESSION STATE
+# --------------------------------------------------
+
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+if "reset_counter" not in st.session_state:
+    st.session_state.reset_counter = 0
+
+
+# --------------------------------------------------
 # IMAGE UPLOAD
 # --------------------------------------------------
 
@@ -86,10 +97,17 @@ st.success("Image uploaded successfully!")
 
 
 # --------------------------------------------------
-# SIDEBAR OPTIONS
+# SIDEBAR
 # --------------------------------------------------
 
 st.sidebar.header("Processing Options")
+
+if st.sidebar.button("Reset Application"):
+
+    st.session_state.history = []
+    st.session_state.reset_counter += 1
+
+    st.rerun()
 
 category = st.sidebar.selectbox(
     "Select Category",
@@ -314,6 +332,41 @@ elif operation == "Image Denoising":
 
 
 # --------------------------------------------------
+# PROCESSING HISTORY
+# --------------------------------------------------
+
+if operation != "Original":
+
+    if (
+        not st.session_state.history
+        or st.session_state.history[-1] != operation
+    ):
+
+        st.session_state.history.append(operation)
+
+st.sidebar.subheader("Processing History")
+
+if st.session_state.history:
+
+    for index, item in enumerate(
+        st.session_state.history,
+        start=1
+    ):
+
+        st.sidebar.write(f"{index}. {item}")
+
+else:
+
+    st.sidebar.write("No processing history yet.")
+
+if st.sidebar.button("Clear History"):
+
+    st.session_state.history = []
+
+    st.rerun()
+
+
+# --------------------------------------------------
 # INTERACTIVE IMAGE COMPARISON
 # --------------------------------------------------
 
@@ -376,7 +429,7 @@ if success:
 
 
 # --------------------------------------------------
-# IMAGE STATISTICS AND HISTOGRAM
+# IMAGE ANALYSIS
 # --------------------------------------------------
 
 st.subheader("Image Analysis")
@@ -409,9 +462,7 @@ if st.button("Show Image Statistics"):
 
             st.write(f"**{key}:** {value}")
 
-    # ----------------------------------------------
-    # GRAYSCALE HISTOGRAMS
-    # ----------------------------------------------
+    # Grayscale histogram
 
     st.write("### Grayscale Histogram Comparison")
 
