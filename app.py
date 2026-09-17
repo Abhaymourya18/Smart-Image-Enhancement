@@ -22,9 +22,9 @@ from modules.analysis import (
     calculate_statistics,
     calculate_histogram,
     calculate_mse,
-    calculate_psnr
+    calculate_psnr,
+    calculate_color_histograms
 )
-
 
 # =====================================================
 # PAGE CONFIGURATION
@@ -498,3 +498,46 @@ if uploaded_file is not None:
             "Comparison unavailable because "
             "image dimensions differ."
         )
+
+# =====================================================
+# HISTOGRAM COMPARISON
+# =====================================================
+
+st.divider()
+
+st.subheader("📊 Histogram Comparison")
+
+if st.button("Compare Histograms"):
+
+    original_histograms = calculate_color_histograms(
+        image_bgr
+    )
+
+    if len(result.shape) == 3:
+        processed_bgr = cv2.cvtColor(
+            result,
+            cv2.COLOR_RGB2BGR
+        )
+    else:
+        processed_bgr = cv2.cvtColor(
+            result,
+            cv2.COLOR_GRAY2BGR
+        )
+
+    processed_histograms = calculate_color_histograms(
+        processed_bgr
+    )
+
+    histogram_col1, histogram_col2 = st.columns(2)
+
+    with histogram_col1:
+
+        st.write("Original Image Histogram")
+
+        st.line_chart(original_histograms)
+
+    with histogram_col2:
+
+        st.write("Processed Image Histogram")
+
+        st.line_chart(processed_histograms)

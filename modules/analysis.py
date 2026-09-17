@@ -51,3 +51,22 @@ def calculate_psnr(original, processed):
         return float("inf")
 
     return float(10 * np.log10((255 ** 2) / mse))
+
+def calculate_color_histograms(image):
+    """Calculate histograms for BGR color channels."""
+
+    colors = ("b", "g", "r")
+    histograms = {}
+
+    for index, color in enumerate(colors):
+        histogram = cv2.calcHist(
+            [image],
+            [index],
+            None,
+            [256],
+            [0, 256]
+        )
+
+        histograms[color] = histogram.flatten()
+
+    return histograms
