@@ -63,15 +63,36 @@ if uploaded_file is not None:
 
 
     # Operation Selection
-    operation = st.selectbox(
-        "Select Image Operation",
+  # Sidebar Controls
+
+st.sidebar.header("⚙️ Processing Controls")
+
+category = st.sidebar.selectbox(
+    "Select Category",
+    [
+        "Enhancement",
+        "Restoration",
+        "Original"
+    ]
+)
+
+if category == "Enhancement":
+    operation = st.sidebar.selectbox(
+        "Select Enhancement",
         [
             "Original",
             "Grayscale",
             "Brightness",
             "Contrast",
             "Histogram Equalization",
-            "Sharpen",
+            "Sharpen"
+        ]
+    )
+
+elif category == "Restoration":
+    operation = st.sidebar.selectbox(
+        "Select Restoration",
+        [
             "Gaussian Blur",
             "Median Filter",
             "Bilateral Filter",
@@ -79,6 +100,8 @@ if uploaded_file is not None:
         ]
     )
 
+else:
+    operation = "Original"
 
     # Image Processing
 
