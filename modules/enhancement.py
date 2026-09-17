@@ -32,3 +32,23 @@ def sharpen_image(image):
     ])
 
     return cv2.filter2D(image, -1, kernel)
+def emboss_image(image):
+    """Apply an emboss effect."""
+    kernel = np.array([
+        [-2, -1, 0],
+        [-1, 1, 1],
+        [0, 1, 2]
+    ])
+
+    return cv2.filter2D(image, -1, kernel)
+
+
+def detect_edges(image, threshold1=100, threshold2=200):
+    """Detect edges using the Canny algorithm."""
+    gray = convert_to_grayscale(image)
+
+    return cv2.Canny(
+        gray,
+        threshold1,
+        threshold2
+    )
