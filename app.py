@@ -26,6 +26,7 @@ from modules.analysis import (
     calculate_color_histograms
 )
 
+
 # =====================================================
 # PAGE CONFIGURATION
 # =====================================================
@@ -62,7 +63,7 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
 
     try:
-        # Validate file size (maximum 10 MB)
+        # Validate file size
         if uploaded_file.size > 10 * 1024 * 1024:
             st.error("File size must be less than 10 MB.")
             st.stop()
@@ -72,12 +73,12 @@ if uploaded_file is not None:
 
         image_np = np.array(image)
 
-        # Validate image dimensions
+        # Validate image
         if image_np.size == 0:
             st.error("The uploaded image is empty.")
             st.stop()
 
-        # Convert RGB to BGR for OpenCV
+        # Convert RGB to BGR
         image_bgr = cv2.cvtColor(
             image_np,
             cv2.COLOR_RGB2BGR
@@ -86,6 +87,8 @@ if uploaded_file is not None:
     except Exception as error:
         st.error(f"Unable to process image: {error}")
         st.stop()
+
+
     # =================================================
     # SIDEBAR CONTROLS
     # =================================================
@@ -101,8 +104,6 @@ if uploaded_file is not None:
         ]
     )
 
-
-    # Default values
     operation = "Original"
 
     kernel_size = 5
@@ -178,7 +179,6 @@ if uploaded_file is not None:
                 step=2
             )
 
-
         elif operation == "Bilateral Filter":
 
             diameter = st.sidebar.slider(
@@ -202,7 +202,6 @@ if uploaded_file is not None:
                 150,
                 75
             )
-
 
         elif operation == "Image Denoising":
 
@@ -337,7 +336,6 @@ if uploaded_file is not None:
 
     col1, col2 = st.columns(2)
 
-
     with col1:
 
         st.subheader("Original Image")
@@ -346,7 +344,6 @@ if uploaded_file is not None:
             image_np,
             use_container_width=True
         )
-
 
     with col2:
 
@@ -366,7 +363,6 @@ if uploaded_file is not None:
 
     st.subheader("⬇️ Download Processed Image")
 
-
     if len(result.shape) == 3:
 
         result_bgr = cv2.cvtColor(
@@ -378,12 +374,10 @@ if uploaded_file is not None:
 
         result_bgr = result
 
-
     success, encoded_image = cv2.imencode(
         ".png",
         result_bgr
     )
-
 
     if success:
 
@@ -403,19 +397,15 @@ if uploaded_file is not None:
 
     st.subheader("📊 Image Analysis")
 
-
     if st.button("Analyze Original Image"):
 
         statistics = calculate_statistics(
             image_bgr
         )
 
-
         st.write("### Image Statistics")
 
-
         metric_columns = st.columns(4)
-
 
         for column, (key, value) in zip(
             metric_columns,
@@ -427,15 +417,11 @@ if uploaded_file is not None:
                 value
             )
 
-
-        # Histogram
         histogram = calculate_histogram(
             image_bgr
         )
 
-
         st.write("### Grayscale Histogram")
-
 
         st.line_chart(histogram)
 
@@ -448,12 +434,10 @@ if uploaded_file is not None:
 
     st.subheader("📈 Image Comparison Metrics")
 
-
     original_gray = cv2.cvtColor(
         image_bgr,
         cv2.COLOR_BGR2GRAY
     )
-
 
     if len(result.shape) == 3:
 
@@ -466,7 +450,6 @@ if uploaded_file is not None:
 
         processed_gray = result
 
-
     if original_gray.shape == processed_gray.shape:
 
         mse = calculate_mse(
@@ -474,21 +457,17 @@ if uploaded_file is not None:
             processed_gray
         )
 
-
         psnr = calculate_psnr(
             original_gray,
             processed_gray
         )
 
-
         metric_col1, metric_col2 = st.columns(2)
-
 
         metric_col1.metric(
             "MSE",
             f"{mse:.2f}"
         )
-
 
         if np.isinf(psnr):
 
@@ -498,12 +477,56 @@ if uploaded_file is not None:
 
             psnr_display = f"{psnr:.2f} dB"
 
-
         metric_col2.metric(
             "PSNR",
             psnr_display
         )
 
+        # Metric Interpretation
+
+        st.write("### Metric Interpretation")
+
+        if mse == 0:
+
+            st.success(
+                "The processed image is identical "
+                "to the original."
+            )
+
+        elif mse < 100:
+
+            st.info(
+                "Low MSE indicates that the processed "
+                "image has small pixel-level differences."
+            )
+
+        else:
+
+            st.warning(
+                "Higher MSE indicates greater pixel-level "
+                "differences from the original image."
+            )
+
+        if np.isinf(psnr):
+
+            st.info(
+                "PSNR is infinite because both images "
+                "are identical."
+            )
+
+        elif psnr >= 30:
+
+            st.info(
+                "Higher PSNR generally indicates "
+                "lower reconstruction error."
+            )
+
+        else:
+
+            st.info(
+                "Lower PSNR indicates greater differences "
+                "between the original and processed images."
+            )
 
     else:
 
@@ -512,45 +535,49 @@ if uploaded_file is not None:
             "image dimensions differ."
         )
 
-# =====================================================
-# HISTOGRAM COMPARISON
-# =====================================================
 
-st.divider()
+    # =================================================
+    # HISTOGRAM COMPARISON
+    # =================================================
 
-st.subheader("📊 Histogram Comparison")
+    st.divider()
 
-if st.button("Compare Histograms"):
+    st.subheader("📊 Histogram Comparison")
 
-    original_histograms = calculate_color_histograms(
-        image_bgr
-    )
+    if st.button("Compare Histograms"):
 
-    if len(result.shape) == 3:
-        processed_bgr = cv2.cvtColor(
-            result,
-            cv2.COLOR_RGB2BGR
-        )
-    else:
-        processed_bgr = cv2.cvtColor(
-            result,
-            cv2.COLOR_GRAY2BGR
+        original_histograms = calculate_color_histograms(
+            image_bgr
         )
 
-    processed_histograms = calculate_color_histograms(
-        processed_bgr
-    )
+        if len(result.shape) == 3:
 
-    histogram_col1, histogram_col2 = st.columns(2)
+            processed_bgr = cv2.cvtColor(
+                result,
+                cv2.COLOR_RGB2BGR
+            )
 
-    with histogram_col1:
+        else:
 
-        st.write("Original Image Histogram")
+            processed_bgr = cv2.cvtColor(
+                result,
+                cv2.COLOR_GRAY2BGR
+            )
 
-        st.line_chart(original_histograms)
+        processed_histograms = calculate_color_histograms(
+            processed_bgr
+        )
 
-    with histogram_col2:
+        histogram_col1, histogram_col2 = st.columns(2)
 
-        st.write("Processed Image Histogram")
+        with histogram_col1:
 
-        st.line_chart(processed_histograms)
+            st.write("Original Image Histogram")
+
+            st.line_chart(original_histograms)
+
+        with histogram_col2:
+
+            st.write("Processed Image Histogram")
+
+            st.line_chart(processed_histograms)
