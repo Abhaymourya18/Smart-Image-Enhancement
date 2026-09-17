@@ -225,7 +225,31 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
+# Download Processed Image
 
+st.subheader("⬇️ Download Processed Image")
+
+# Convert RGB result to BGR for saving
+if len(result.shape) == 3:
+    result_bgr = cv2.cvtColor(
+        result,
+        cv2.COLOR_RGB2BGR
+    )
+else:
+    result_bgr = result
+
+success, encoded_image = cv2.imencode(
+    ".png",
+    result_bgr
+)
+
+if success:
+    st.download_button(
+        label="Download Image",
+        data=encoded_image.tobytes(),
+        file_name="processed_image.png",
+        mime="image/png"
+    )
     # Image Analysis Section
 
     st.divider()
