@@ -61,18 +61,31 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    # Read uploaded image
-    image = Image.open(uploaded_file).convert("RGB")
+    try:
+        # Validate file size (maximum 10 MB)
+        if uploaded_file.size > 10 * 1024 * 1024:
+            st.error("File size must be less than 10 MB.")
+            st.stop()
 
-    image_np = np.array(image)
+        # Read uploaded image
+        image = Image.open(uploaded_file).convert("RGB")
 
-    # Convert RGB to BGR for OpenCV
-    image_bgr = cv2.cvtColor(
-        image_np,
-        cv2.COLOR_RGB2BGR
-    )
+        image_np = np.array(image)
 
+        # Validate image dimensions
+        if image_np.size == 0:
+            st.error("The uploaded image is empty.")
+            st.stop()
 
+        # Convert RGB to BGR for OpenCV
+        image_bgr = cv2.cvtColor(
+            image_np,
+            cv2.COLOR_RGB2BGR
+        )
+
+    except Exception as error:
+        st.error(f"Unable to process image: {error}")
+        st.stop()
     # =================================================
     # SIDEBAR CONTROLS
     # =================================================
