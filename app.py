@@ -17,6 +17,7 @@ from modules.restoration import (
     bilateral_filter,
     denoise_image
 )
+
 from modules.analysis import (
     calculate_statistics,
     calculate_histogram,
@@ -24,7 +25,11 @@ from modules.analysis import (
     calculate_psnr
 )
 
-# Page Configuration
+
+# =====================================================
+# PAGE CONFIGURATION
+# =====================================================
+
 st.set_page_config(
     page_title="Smart Image Enhancement",
     page_icon="🖼️",
@@ -32,7 +37,10 @@ st.set_page_config(
 )
 
 
-# Application Title
+# =====================================================
+# APPLICATION TITLE
+# =====================================================
+
 st.title("🖼️ Smart Image Enhancement and Restoration System")
 
 st.write(
@@ -41,7 +49,10 @@ st.write(
 )
 
 
-# Image Upload
+# =====================================================
+# IMAGE UPLOAD
+# =====================================================
+
 uploaded_file = st.file_uploader(
     "Upload an image",
     type=["jpg", "jpeg", "png"]
@@ -50,7 +61,7 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    # Read Uploaded Image
+    # Read uploaded image
     image = Image.open(uploaded_file).convert("RGB")
 
     image_np = np.array(image)
@@ -62,48 +73,137 @@ if uploaded_file is not None:
     )
 
 
-    # Operation Selection
-  # Sidebar Controls
+    # =================================================
+    # SIDEBAR CONTROLS
+    # =================================================
 
-st.sidebar.header("⚙️ Processing Controls")
+    st.sidebar.header("⚙️ Processing Controls")
 
-category = st.sidebar.selectbox(
-    "Select Category",
-    [
-        "Enhancement",
-        "Restoration",
-        "Original"
-    ]
-)
-
-if category == "Enhancement":
-    operation = st.sidebar.selectbox(
-        "Select Enhancement",
+    category = st.sidebar.selectbox(
+        "Select Category",
         [
             "Original",
-            "Grayscale",
-            "Brightness",
-            "Contrast",
-            "Histogram Equalization",
-            "Sharpen"
+            "Enhancement",
+            "Restoration"
         ]
     )
 
-elif category == "Restoration":
-    operation = st.sidebar.selectbox(
-        "Select Restoration",
-        [
-            "Gaussian Blur",
-            "Median Filter",
-            "Bilateral Filter",
-            "Image Denoising"
-        ]
-    )
 
-else:
+    # Default values
     operation = "Original"
 
-    # Image Processing
+    kernel_size = 5
+    diameter = 9
+    sigma_color = 75
+    sigma_space = 75
+    strength = 10
+
+
+    # =================================================
+    # ENHANCEMENT OPTIONS
+    # =================================================
+
+    if category == "Enhancement":
+
+        operation = st.sidebar.selectbox(
+            "Select Enhancement",
+            [
+                "Original",
+                "Grayscale",
+                "Brightness",
+                "Contrast",
+                "Histogram Equalization",
+                "Sharpen"
+            ]
+        )
+
+        if operation == "Brightness":
+
+            brightness_value = st.sidebar.slider(
+                "Brightness",
+                -100,
+                100,
+                30
+            )
+
+        elif operation == "Contrast":
+
+            contrast_value = st.sidebar.slider(
+                "Contrast",
+                0.5,
+                3.0,
+                1.5
+            )
+
+
+    # =================================================
+    # RESTORATION OPTIONS
+    # =================================================
+
+    elif category == "Restoration":
+
+        operation = st.sidebar.selectbox(
+            "Select Restoration",
+            [
+                "Gaussian Blur",
+                "Median Filter",
+                "Bilateral Filter",
+                "Image Denoising"
+            ]
+        )
+
+        if operation in [
+            "Gaussian Blur",
+            "Median Filter"
+        ]:
+
+            kernel_size = st.sidebar.slider(
+                "Kernel Size",
+                3,
+                11,
+                5,
+                step=2
+            )
+
+
+        elif operation == "Bilateral Filter":
+
+            diameter = st.sidebar.slider(
+                "Filter Diameter",
+                3,
+                15,
+                9,
+                step=2
+            )
+
+            sigma_color = st.sidebar.slider(
+                "Sigma Color",
+                10,
+                150,
+                75
+            )
+
+            sigma_space = st.sidebar.slider(
+                "Sigma Space",
+                10,
+                150,
+                75
+            )
+
+
+        elif operation == "Image Denoising":
+
+            strength = st.sidebar.slider(
+                "Denoising Strength",
+                1,
+                30,
+                10
+            )
+
+
+    # =================================================
+    # IMAGE PROCESSING
+    # =================================================
 
     if operation == "Original":
 
@@ -112,21 +212,16 @@ else:
 
     elif operation == "Grayscale":
 
-        result = convert_to_grayscale(image_bgr)
+        result = convert_to_grayscale(
+            image_bgr
+        )
 
 
     elif operation == "Brightness":
 
-        value = st.slider(
-            "Brightness",
-            -100,
-            100,
-            30
-        )
-
         result = adjust_brightness(
             image_bgr,
-            value
+            brightness_value
         )
 
         result = cv2.cvtColor(
@@ -137,16 +232,9 @@ else:
 
     elif operation == "Contrast":
 
-        alpha = st.slider(
-            "Contrast",
-            0.5,
-            3.0,
-            1.5
-        )
-
         result = adjust_contrast(
             image_bgr,
-            alpha
+            contrast_value
         )
 
         result = cv2.cvtColor(
@@ -177,7 +265,8 @@ else:
     elif operation == "Gaussian Blur":
 
         result = gaussian_blur(
-            image_bgr
+            image_bgr,
+            kernel_size
         )
 
         result = cv2.cvtColor(
@@ -189,7 +278,8 @@ else:
     elif operation == "Median Filter":
 
         result = median_filter(
-            image_bgr
+            image_bgr,
+            kernel_size
         )
 
         result = cv2.cvtColor(
@@ -201,7 +291,10 @@ else:
     elif operation == "Bilateral Filter":
 
         result = bilateral_filter(
-            image_bgr
+            image_bgr,
+            diameter,
+            sigma_color,
+            sigma_space
         )
 
         result = cv2.cvtColor(
@@ -213,7 +306,8 @@ else:
     elif operation == "Image Denoising":
 
         result = denoise_image(
-            image_bgr
+            image_bgr,
+            strength
         )
 
         result = cv2.cvtColor(
@@ -222,7 +316,9 @@ else:
         )
 
 
-    # Display Original and Processed Images
+    # =================================================
+    # IMAGE DISPLAY
+    # =================================================
 
     st.divider()
 
@@ -248,32 +344,47 @@ else:
             use_container_width=True
         )
 
-# Download Processed Image
 
-st.subheader("⬇️ Download Processed Image")
+    # =================================================
+    # DOWNLOAD PROCESSED IMAGE
+    # =================================================
 
-# Convert RGB result to BGR for saving
-if len(result.shape) == 3:
-    result_bgr = cv2.cvtColor(
-        result,
-        cv2.COLOR_RGB2BGR
+    st.divider()
+
+    st.subheader("⬇️ Download Processed Image")
+
+
+    if len(result.shape) == 3:
+
+        result_bgr = cv2.cvtColor(
+            result,
+            cv2.COLOR_RGB2BGR
+        )
+
+    else:
+
+        result_bgr = result
+
+
+    success, encoded_image = cv2.imencode(
+        ".png",
+        result_bgr
     )
-else:
-    result_bgr = result
 
-success, encoded_image = cv2.imencode(
-    ".png",
-    result_bgr
-)
 
-if success:
-    st.download_button(
-        label="Download Image",
-        data=encoded_image.tobytes(),
-        file_name="processed_image.png",
-        mime="image/png"
-    )
-    # Image Analysis Section
+    if success:
+
+        st.download_button(
+            label="Download Image",
+            data=encoded_image.tobytes(),
+            file_name="processed_image.png",
+            mime="image/png"
+        )
+
+
+    # =================================================
+    # IMAGE ANALYSIS
+    # =================================================
 
     st.divider()
 
@@ -304,8 +415,7 @@ if success:
             )
 
 
-        # Histogram Calculation
-
+        # Histogram
         histogram = calculate_histogram(
             image_bgr
         )
@@ -316,57 +426,75 @@ if success:
 
         st.line_chart(histogram)
 
-# Image Comparison Metrics
 
-st.divider()
+    # =================================================
+    # IMAGE COMPARISON METRICS
+    # =================================================
 
-st.subheader("📈 Image Comparison Metrics")
+    st.divider()
 
-# Convert both images to grayscale
-original_gray = cv2.cvtColor(
-    image_bgr,
-    cv2.COLOR_BGR2GRAY
-)
+    st.subheader("📈 Image Comparison Metrics")
 
-if len(result.shape) == 3:
-    processed_gray = cv2.cvtColor(
-        result,
-        cv2.COLOR_RGB2GRAY
-    )
-else:
-    processed_gray = result
 
-# Ensure matching dimensions
-if original_gray.shape == processed_gray.shape:
-
-    mse = calculate_mse(
-        original_gray,
-        processed_gray
+    original_gray = cv2.cvtColor(
+        image_bgr,
+        cv2.COLOR_BGR2GRAY
     )
 
-    psnr = calculate_psnr(
-        original_gray,
-        processed_gray
-    )
 
-    metric_col1, metric_col2 = st.columns(2)
+    if len(result.shape) == 3:
 
-    metric_col1.metric(
-        "MSE",
-        f"{mse:.2f}"
-    )
+        processed_gray = cv2.cvtColor(
+            result,
+            cv2.COLOR_RGB2GRAY
+        )
 
-    if np.isinf(psnr):
-        psnr_display = "∞"
     else:
-        psnr_display = f"{psnr:.2f} dB"
 
-    metric_col2.metric(
-        "PSNR",
-        psnr_display
-    )
+        processed_gray = result
 
-else:
-    st.warning(
-        "Comparison unavailable because image dimensions differ."
-    )
+
+    if original_gray.shape == processed_gray.shape:
+
+        mse = calculate_mse(
+            original_gray,
+            processed_gray
+        )
+
+
+        psnr = calculate_psnr(
+            original_gray,
+            processed_gray
+        )
+
+
+        metric_col1, metric_col2 = st.columns(2)
+
+
+        metric_col1.metric(
+            "MSE",
+            f"{mse:.2f}"
+        )
+
+
+        if np.isinf(psnr):
+
+            psnr_display = "∞"
+
+        else:
+
+            psnr_display = f"{psnr:.2f} dB"
+
+
+        metric_col2.metric(
+            "PSNR",
+            psnr_display
+        )
+
+
+    else:
+
+        st.warning(
+            "Comparison unavailable because "
+            "image dimensions differ."
+        )
