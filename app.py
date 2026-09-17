@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from PIL import Image
 import io
+import matplotlib.pyplot as plt
 
 from modules.enhancement import (
     convert_to_grayscale,
@@ -41,6 +42,7 @@ st.set_page_config(
 )
 
 st.title("🖼️ Smart Image Enhancement and Restoration System")
+
 st.write(
     "Enhance, restore, and analyze images using traditional "
     "computer vision techniques with OpenCV."
@@ -67,8 +69,10 @@ if uploaded_file is not None:
         image_pil = Image.open(uploaded_file).convert("RGB")
         image_rgb = np.array(image_pil)
 
-        # Convert RGB to BGR for OpenCV
-        image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+        image_bgr = cv2.cvtColor(
+            image_rgb,
+            cv2.COLOR_RGB2BGR
+        )
 
     except Exception as e:
         st.error(f"Error loading image: {e}")
@@ -109,6 +113,7 @@ if uploaded_file is not None:
         )
 
         if operation == "Brightness":
+
             brightness_value = st.sidebar.slider(
                 "Brightness",
                 -100,
@@ -117,6 +122,7 @@ if uploaded_file is not None:
             )
 
         elif operation == "Contrast":
+
             contrast_value = st.sidebar.slider(
                 "Contrast",
                 0.5,
@@ -142,6 +148,7 @@ if uploaded_file is not None:
         )
 
         if operation in ["Gaussian Blur", "Median Filter"]:
+
             kernel_size = st.sidebar.slider(
                 "Kernel Size",
                 3,
@@ -192,8 +199,6 @@ if uploaded_file is not None:
     if operation == "Original":
 
         result = image_rgb.copy()
-
-    # Enhancement operations
 
     elif operation == "Grayscale":
 
@@ -249,8 +254,6 @@ if uploaded_file is not None:
 
         result = detect_edges(image_bgr)
 
-    # Restoration operations
-
     elif operation == "Gaussian Blur":
 
         result = gaussian_blur(
@@ -302,7 +305,7 @@ if uploaded_file is not None:
         )
 
     # --------------------------------------------------
-    # DISPLAY ORIGINAL AND PROCESSED IMAGES
+    # IMAGE COMPARISON
     # --------------------------------------------------
 
     st.subheader("Image Comparison")
@@ -310,6 +313,7 @@ if uploaded_file is not None:
     col1, col2 = st.columns(2)
 
     with col1:
+
         st.image(
             image_rgb,
             caption="Original Image",
@@ -317,6 +321,7 @@ if uploaded_file is not None:
         )
 
     with col2:
+
         st.image(
             result,
             caption=f"Processed Image: {operation}",
@@ -330,8 +335,11 @@ if uploaded_file is not None:
     st.subheader("Download Processed Image")
 
     if len(result.shape) == 2:
+
         result_to_save = result
+
     else:
+
         result_to_save = cv2.cvtColor(
             result,
             cv2.COLOR_RGB2BGR
@@ -356,7 +364,7 @@ if uploaded_file is not None:
         )
 
     # --------------------------------------------------
-    # IMAGE ANALYSIS
+    # IMAGE STATISTICS AND HISTOGRAM
     # --------------------------------------------------
 
     st.subheader("Image Analysis")
@@ -378,6 +386,7 @@ if uploaded_file is not None:
             st.write("### Original Image Statistics")
 
             for key, value in original_statistics.items():
+
                 st.write(f"**{key}:** {value}")
 
         with col2:
@@ -385,11 +394,14 @@ if uploaded_file is not None:
             st.write("### Processed Image Statistics")
 
             for key, value in processed_statistics.items():
+
                 st.write(f"**{key}:** {value}")
 
-        # Histogram
+        # ----------------------------------------------
+        # MATPLOTLIB GRAYSCALE HISTOGRAMS
+        # ----------------------------------------------
 
-        st.write("### Grayscale Histogram")
+        st.write("### Grayscale Histogram Comparison")
 
         original_histogram = calculate_histogram(
             image_bgr
@@ -399,12 +411,49 @@ if uploaded_file is not None:
             result
         )
 
-        histogram_data = {
-            "Original": original_histogram,
-            "Processed": processed_histogram
-        }
+        fig, axes = plt.subplots(
+            1,
+            2,
+            figsize=(12, 4)
+        )
 
-        st.line_chart(histogram_data)
+        axes[0].plot(original_histogram)
+
+        axes[0].set_title(
+            "Original Image Histogram"
+        )
+
+        axes[0].set_xlabel(
+            "Pixel Intensity"
+        )
+
+        axes[0].set_ylabel(
+            "Frequency"
+        )
+
+        axes[0].set_xlim(0, 255)
+
+        axes[1].plot(processed_histogram)
+
+        axes[1].set_title(
+            "Processed Image Histogram"
+        )
+
+        axes[1].set_xlabel(
+            "Pixel Intensity"
+        )
+
+        axes[1].set_ylabel(
+            "Frequency"
+        )
+
+        axes[1].set_xlim(0, 255)
+
+        plt.tight_layout()
+
+        st.pyplot(fig)
+
+        plt.close(fig)
 
     # --------------------------------------------------
     # MSE AND PSNR
@@ -443,6 +492,7 @@ if uploaded_file is not None:
         col1, col2 = st.columns(2)
 
         with col1:
+
             st.metric(
                 "Mean Squared Error (MSE)",
                 f"{mse_value:.2f}"
@@ -451,9 +501,14 @@ if uploaded_file is not None:
         with col2:
 
             if np.isinf(psnr_value):
-                st.metric("PSNR", "Infinite")
+
+                st.metric(
+                    "PSNR",
+                    "Infinite"
+                )
 
             else:
+
                 st.metric(
                     "PSNR",
                     f"{psnr_value:.2f} dB"
@@ -487,7 +542,8 @@ if uploaded_file is not None:
         if len(result.shape) == 2:
 
             st.warning(
-                "Color histograms are not available for grayscale images."
+                "Color histograms are not available "
+                "for grayscale images."
             )
 
         else:
@@ -505,19 +561,83 @@ if uploaded_file is not None:
                 calculate_color_histograms(processed_bgr)
             )
 
-            histogram_comparison = {
+            fig, axes = plt.subplots(
+                1,
+                2,
+                figsize=(12, 4)
+            )
 
-                "Original Blue": original_color_histograms["b"],
-                "Processed Blue": processed_color_histograms["b"],
+            # Original color histogram
 
-                "Original Green": original_color_histograms["g"],
-                "Processed Green": processed_color_histograms["g"],
+            axes[0].plot(
+                original_color_histograms["b"],
+                label="Blue"
+            )
 
-                "Original Red": original_color_histograms["r"],
-                "Processed Red": processed_color_histograms["r"]
-            }
+            axes[0].plot(
+                original_color_histograms["g"],
+                label="Green"
+            )
 
-            st.line_chart(histogram_comparison)
+            axes[0].plot(
+                original_color_histograms["r"],
+                label="Red"
+            )
+
+            axes[0].set_title(
+                "Original Color Histogram"
+            )
+
+            axes[0].set_xlabel(
+                "Pixel Intensity"
+            )
+
+            axes[0].set_ylabel(
+                "Frequency"
+            )
+
+            axes[0].set_xlim(0, 255)
+
+            axes[0].legend()
+
+            # Processed color histogram
+
+            axes[1].plot(
+                processed_color_histograms["b"],
+                label="Blue"
+            )
+
+            axes[1].plot(
+                processed_color_histograms["g"],
+                label="Green"
+            )
+
+            axes[1].plot(
+                processed_color_histograms["r"],
+                label="Red"
+            )
+
+            axes[1].set_title(
+                "Processed Color Histogram"
+            )
+
+            axes[1].set_xlabel(
+                "Pixel Intensity"
+            )
+
+            axes[1].set_ylabel(
+                "Frequency"
+            )
+
+            axes[1].set_xlim(0, 255)
+
+            axes[1].legend()
+
+            plt.tight_layout()
+
+            st.pyplot(fig)
+
+            plt.close(fig)
 
 else:
 
