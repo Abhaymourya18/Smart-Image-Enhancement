@@ -17,12 +17,12 @@ from modules.restoration import (
     bilateral_filter,
     denoise_image
 )
-
 from modules.analysis import (
     calculate_statistics,
-    calculate_histogram
+    calculate_histogram,
+    calculate_mse,
+    calculate_psnr
 )
-
 
 # Page Configuration
 st.set_page_config(
@@ -268,3 +268,58 @@ if uploaded_file is not None:
 
 
         st.line_chart(histogram)
+
+# Image Comparison Metrics
+
+st.divider()
+
+st.subheader("📈 Image Comparison Metrics")
+
+# Convert both images to grayscale
+original_gray = cv2.cvtColor(
+    image_bgr,
+    cv2.COLOR_BGR2GRAY
+)
+
+if len(result.shape) == 3:
+    processed_gray = cv2.cvtColor(
+        result,
+        cv2.COLOR_RGB2GRAY
+    )
+else:
+    processed_gray = result
+
+# Ensure matching dimensions
+if original_gray.shape == processed_gray.shape:
+
+    mse = calculate_mse(
+        original_gray,
+        processed_gray
+    )
+
+    psnr = calculate_psnr(
+        original_gray,
+        processed_gray
+    )
+
+    metric_col1, metric_col2 = st.columns(2)
+
+    metric_col1.metric(
+        "MSE",
+        f"{mse:.2f}"
+    )
+
+    if np.isinf(psnr):
+        psnr_display = "∞"
+    else:
+        psnr_display = f"{psnr:.2f} dB"
+
+    metric_col2.metric(
+        "PSNR",
+        psnr_display
+    )
+
+else:
+    st.warning(
+        "Comparison unavailable because image dimensions differ."
+    )
