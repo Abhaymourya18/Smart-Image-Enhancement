@@ -2,7 +2,6 @@ import cv2
 
 
 def gaussian_blur(image, kernel_size=5):
-    """Reduce noise using Gaussian blur."""
     return cv2.GaussianBlur(
         image,
         (kernel_size, kernel_size),
@@ -11,27 +10,29 @@ def gaussian_blur(image, kernel_size=5):
 
 
 def median_filter(image, kernel_size=5):
-    """Remove salt-and-pepper noise."""
     return cv2.medianBlur(image, kernel_size)
 
 
-def bilateral_filter(image):
-    """Reduce noise while preserving edges."""
+def bilateral_filter(
+    image,
+    diameter=9,
+    sigma_color=75,
+    sigma_space=75
+):
     return cv2.bilateralFilter(
         image,
-        d=9,
-        sigmaColor=75,
-        sigmaSpace=75
+        diameter,
+        sigma_color,
+        sigma_space
     )
 
 
-def denoise_image(image):
-    """Perform advanced image denoising."""
+def denoise_image(image, strength=10):
     return cv2.fastNlMeansDenoisingColored(
         image,
         None,
-        10,
-        10,
+        strength,
+        strength,
         7,
         21
     )
